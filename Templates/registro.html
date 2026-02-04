@@ -1,0 +1,70 @@
+{% extends "base.html" %}
+
+{% block content %}
+<div class="container">
+    <div class="row justify-content-center">
+        <div class="col-md-7 col-lg-6">
+            <div class="card shadow-lg rounded-3 mt-5">
+                <div class="card-header bg-primary text-white text-center rounded-top-3">
+                    <h3 class="my-2">Registro de Nuevo Empleado</h3>
+                    <p class="mb-0">Completa el formulario para unirte a la empresa.</p>
+                </div>
+                <div class="card-body p-4">
+                    <form method="POST" action="{{ url_for('main.registro') }}">
+                        
+                        <h6 class="text-secondary mb-3"><i class="fas fa-id-card me-1"></i> Datos Personales</h6>
+                        
+                        <div class="row">
+                            <div class="col-md-6 mb-3">
+                                <label for="nombre" class="form-label">Nombre (*)</label>
+                                <input type="text" class="form-control rounded-pill" id="nombre" name="nombre" required>
+                            </div>
+                            <div class="col-md-6 mb-3">
+                                <label for="apellidos" class="form-label">Apellidos (*)</label>
+                                <input type="text" class="form-control rounded-pill" id="apellidos" name="apellidos" required>
+                            </div>
+                        </div>
+
+                        <div class="mb-3">
+                            <label for="nif" class="form-label">NIF (*)</label>
+                            <input type="text" class="form-control rounded-pill" id="nif" name="nif" placeholder="Tu NIF/NIE único" required>
+                        </div>
+                        
+                        <div class="mb-3">
+                            <label for="id_empresa" class="form-label">Empresa (*)</label>
+                            <select class="form-select rounded-pill" id="id_empresa" name="id_empresa" required>
+                                <option value="">Selecciona tu Empresa</option>
+                                {% for empresa in empresas %}
+                                    <option value="{{ empresa.id }}">{{ empresa.nombre_comercial }} (CIF: {{ empresa.cif }})</option>
+                                {% endfor %}
+                            </select>
+                            <div class="form-text">Debes seleccionar la empresa a la que te unirás.</div>
+                        </div>
+                        
+                        <h6 class="text-secondary mb-3 mt-4"><i class="fas fa-lock me-1"></i> Datos de Acceso</h6>
+                        
+                        <div class="mb-3">
+                            <label for="email" class="form-label">Email (*)</label>
+                            <input type="email" class="form-control rounded-pill" id="email" name="email" placeholder="Email para iniciar sesión" required>
+                        </div>
+
+                        <div class="mb-4">
+                            <label for="password" class="form-label">Contraseña (*)</label>
+                            <input type="password" class="form-control rounded-pill" id="password" name="password" required>
+                        </div>
+                        
+                        <div class="d-grid">
+                            <button type="submit" class="btn btn-primary btn-lg rounded-pill shadow-sm">
+                                <i class="fas fa-user-plus me-2"></i> Registrarme
+                            </button>
+                        </div>
+                    </form>
+                </div>
+                <div class="card-footer text-center rounded-bottom-3">
+                    <small>¿Ya tienes cuenta? <a href="{{ url_for('main.login') }}">Inicia Sesión aquí</a></small>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}

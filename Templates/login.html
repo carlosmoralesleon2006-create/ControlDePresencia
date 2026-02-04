@@ -1,0 +1,49 @@
+{% extends "base.html" %}
+
+{% block content %}
+<div class="container">
+    <div class="row justify-content-center">
+        <div class="col-md-6 col-lg-5">
+            <div class="card shadow-lg rounded-3 mt-5">
+                <div class="card-header bg-primary text-white text-center rounded-top-3">
+                    <h3 class="my-2">Acceso de Administradores</h3>
+                    <p class="mb-0">Proyecto RRHH Básico</p>
+                </div>
+                <div class="card-body p-4">
+                    <form method="POST" action="{{ url_for('main.login') }}">
+                        <div class="mb-3">
+                            <label for="nif" class="form-label">NIF</label>
+                            <input type="text" 
+                                   class="form-control rounded-pill" 
+                                   id="nif" 
+                                   name="nif" 
+                                   placeholder="Introduce tu NIF" 
+                                   required 
+                                   aria-describedby="nifHelp">
+                            <div id="nifHelp" class="form-text">Solo acceso para usuarios con rol de Administrador.</div>
+                        </div>
+                        <div class="mb-4">
+                            <label for="password" class="form-label">Contraseña</label>
+                            <input type="password" 
+                                   class="form-control rounded-pill" 
+                                   id="password" 
+                                   name="password" 
+                                   placeholder="Introduce tu contraseña" 
+                                   required>
+                        </div>
+                        
+                        <div class="d-grid">
+                            <button type="submit" class="btn btn-primary btn-lg rounded-pill shadow-sm">
+                                <i class="fas fa-sign-in-alt me-2"></i> Iniciar Sesión
+                            </button>
+                        </div>
+                    </form>
+                </div>
+                <div class="card-footer text-muted text-center rounded-bottom-3">
+                    <small>&copy; Proyecto Flask 1er Trimestre</small>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}

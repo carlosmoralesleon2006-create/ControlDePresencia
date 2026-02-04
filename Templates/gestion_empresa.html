@@ -1,0 +1,86 @@
+{% extends "base.html" %}
+
+{% block title %}Configuración de Empresa{% endblock %}
+
+{% block content %}
+<div class="container-fluid py-4">
+    <h1 class="mb-5 text-center text-secondary">
+        <i class="fas fa-building me-2"></i> Configuración de la Empresa
+    </h1>
+    <p class="text-center text-muted mb-5">
+        Gestione la información básica de la empresa a la que está asociado.
+    </p>
+
+    <div class="row justify-content-center">
+        <div class="col-lg-8">
+            <div class="card shadow-lg border-0">
+                <div class="card-header bg-secondary text-white">
+                    <h5 class="mb-0">Datos de: **{{ empresa.nombre_comercial }}** (CIF: {{ empresa.cif }})</h5>
+                </div>
+                <div class="card-body">
+                    <form method="POST" action="{{ url_for('main.gestion_empresa') }}">
+                        
+                        <div class="row">
+                            <div class="col-md-6 mb-3">
+                                <label for="cif" class="form-label">CIF (*)</label>
+                                <input type="text" class="form-control rounded-pill" id="cif" name="cif" required 
+                                    value="{{ empresa.cif }}">
+                            </div>
+                            <div class="col-md-6 mb-3">
+                                <label for="nombre_comercial" class="form-label">Nombre Comercial (*)</label>
+                                <input type="text" class="form-control rounded-pill" id="nombre_comercial" name="nombre_comercial" required
+                                    value="{{ empresa.nombre_comercial }}">
+                            </div>
+                        </div>
+
+                        <hr>
+                        <h6 class="mb-3 text-secondary">Datos de Contacto y Ubicación (Adicionales)</h6>
+
+                        <div class="row">
+                            <div class="col-md-6 mb-3">
+                                <label for="email" class="form-label">Email</label>
+                                <input type="email" class="form-control rounded-pill" id="email" name="email"
+                                    value="{{ empresa.email or '' }}">
+                            </div>
+                            <div class="col-md-6 mb-3">
+                                <label for="telefono" class="form-label">Teléfono</label>
+                                <input type="text" class="form-control rounded-pill" id="telefono" name="telefono"
+                                    value="{{ empresa.telefono or '' }}">
+                            </div>
+                        </div>
+
+                        <div class="mb-3">
+                            <label for="domicilio" class="form-label">Domicilio</label>
+                            <input type="text" class="form-control rounded-pill" id="domicilio" name="domicilio"
+                                value="{{ empresa.domicilio or '' }}">
+                        </div>
+                        <div class="row">
+                            <div class="col-md-6 mb-3">
+                                <label for="localidad" class="form-label">Localidad</label>
+                                <input type="text" class="form-control rounded-pill" id="localidad" name="localidad"
+                                    value="{{ empresa.localidad or '' }}">
+                            </div>
+                            <div class="col-md-3 mb-3">
+                                <label for="codigo_postal" class="form-label">Código Postal</label>
+                                <input type="text" class="form-control rounded-pill" id="codigo_postal" name="codigo_postal"
+                                    value="{{ empresa.codigo_postal or '' }}">
+                            </div>
+                            <div class="col-md-3 mb-3">
+                                <label for="provincia" class="form-label">Provincia</label>
+                                <input type="text" class="form-control rounded-pill" id="provincia" name="provincia"
+                                    value="{{ empresa.provincia or '' }}">
+                            </div>
+                        </div>
+
+                        <div class="d-grid mt-4">
+                            <button type="submit" class="btn btn-secondary text-white">
+                                <i class="fas fa-save me-2"></i> Guardar Cambios de la Empresa
+                            </button>
+                        </div>
+                    </form>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}
