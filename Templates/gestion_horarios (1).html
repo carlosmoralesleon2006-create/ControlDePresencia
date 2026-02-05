@@ -1,0 +1,243 @@
+{% extends "base.html" %}
+
+{% block title %}Gestión de Horarios{% endblock %}
+
+{% block content %}
+<div class="container-fluid py-4">
+    <h1 class="mb-5 text-center text-primary">
+        <i class="fas fa-clock me-2"></i> Gestión de Horarios y Franjas
+    </h1>
+    <p class="text-center text-muted mb-5">
+        Define los diferentes tipos de horarios y las franjas (entrada/salida) asociadas a cada día de la semana.
+    </p>
+
+    <div class="row">
+
+        <div class="col-lg-5 mb-4">
+            <div class="card shadow-lg border-0">
+                <div class="card-header bg-primary text-white">
+                    <h5 class="mb-0" id="horario-form-title">Alta de Nuevo Horario</h5>
+                </div>
+                <div class="card-body">
+                    <form id="formHorario" method="POST" action="{{ url_for('main.horario_nuevo') }}">
+                        <input type="hidden" name="horario_id" id="horario_id" value="">
+
+                        <div class="mb-3">
+                            <label for="nombre_horario" class="form-label">Nombre del Horario (*)</label>
+                            <input type="text"
+                                   class="form-control rounded-pill"
+                                   id="nombre_horario"
+                                   name="nombre"
+                                   required
+                                   placeholder="Ej: Jornada Completa, Turno de Noche">
+                        </div>
+
+                        <div class="d-grid gap-2">
+                            <button type="submit" class="btn btn-primary text-white">
+                                <i class="fas fa-plus me-2"></i> Crear Horario
+                            </button>
+                            <button type="button" class="btn btn-outline-secondary" onclick="resetHorarioForm()">
+                                <i class="fas fa-undo me-1"></i> Limpiar Formulario
+                            </button>
+                        </div>
+                    </form>
+                </div>
+            </div>
+
+            <div class="card shadow-lg border-0 mt-4">
+                <div class="card-header bg-dark text-white">
+                    <h5 class="mb-0">Horarios Registrados ({{ horarios | length }})</h5>
+                </div>
+                <div class="card-body p-0">
+                    <div class="list-group list-group-flush">
+                        {% for h in horarios %}
+                            <li class="list-group-item d-flex justify-content-between align-items-center
+                                {% if horario_seleccionado and h.id == horario_seleccionado.id %} active bg-light text-primary border-primary {% endif %}">
+
+                                <span class="fw-bold">{{ h.nombre }}
+                                    {% if h.empleados | length > 0 %}
+                                        <span class="badge bg-secondary ms-2" title="Empleados asignados">{{ h.empleados | length }}</span>
+                                    {% endif %}
+                                </span>
+
+                                <div class="btn-group" role="group">
+                                    <a href="{{ url_for('main.gestion_horarios', horario_id=h.id) }}#franjas"
+                                       class="btn btn-sm btn-outline-primary"
+                                       title="Ver Franjas">
+                                        <i class="fas fa-calendar-alt"></i> Franjas
+                                    </a>
+
+                                   {% set h_data = {'id': h.id, 'nombre': h.nombre} %}
+                                    <button type="button"
+                                        class="btn btn-sm btn-outline-info"
+                                        title="Modificar Nombre"
+                                        onclick='editarHorario({{ h_data | tojson }})'>
+                                        <i class="fas fa-edit"></i>
+                                    </button>
+
+                                    <form method="POST" action="{{ url_for('main.horario_eliminar', horario_id=h.id) }}" class="d-inline" onsubmit="return confirm('¿Eliminar el horario {{ h.nombre }}?');">
+                                        <button type="submit"
+                                                class="btn btn-sm btn-outline-danger"
+                                                title="Eliminar Horario"
+                                                {% if h.empleados | length > 0 %} disabled {% endif %}>
+                                            <i class="fas fa-trash"></i>
+                                        </button>
+                                    </form>
+                                </div>
+                            </li>
+                        {% endfor %}
+                    </div>
+                </div>
+            </div>
+
+        </div>
+
+        <div class="col-lg-7 mb-4" id="franjas">
+            {% if horario_seleccionado %}
+            <div class="card shadow-lg border-0">
+                <div class="card-header bg-success text-white">
+                    <h5 class="mb-0">Gestión de Franjas para: **{{ horario_seleccionado.nombre }}** (ID: {{ horario_seleccionado.id }})</h5>
+                </div>
+                <div class="card-body">
+
+                    <h6 class="mb-3 text-success">Añadir/Modificar Franja</h6>
+                    <form id="formFranja" method="POST" action="{{ url_for('main.franja_nuevo', horario_id=horario_seleccionado.id) }}">
+                        <input type="hidden" name="franja_id" id="franja_id" value="">
+                        <input type="hidden" name="id_horario" value="{{ horario_seleccionado.id }}">
+
+                        <div class="row g-3 mb-3 align-items-end">
+                            <div class="col-md-4">
+                                <label for="dia_semana" class="form-label">Día (*)</label>
+                                <select class="form-select rounded-pill" id="dia_semana" name="dia_semana" required>
+                                    <option value="" disabled selected>Selecciona un día</option>
+                                    {% for num, dia in dias.items() %}
+                                        <option value="{{ num }}">{{ dia }}</option>
+                                    {% endfor %}
+                                </select>
+                            </div>
+                            <div class="col-md-3">
+                                <label for="hora_inicio" class="form-label">Hora Entrada (*)</label>
+                                <input type="time" class="form-control rounded-pill" id="hora_inicio" name="hora_inicio" required>
+                            </div>
+                            <div class="col-md-3">
+                                <label for="hora_fin" class="form-label">Hora Salida (*)</label>
+                                <input type="time" class="form-control rounded-pill" id="hora_fin" name="hora_fin" required>
+                            </div>
+                            <div class="col-md-2 d-grid">
+                                <button type="submit" class="btn btn-success" id="btn-franja-submit">
+                                    <i class="fas fa-save me-1"></i> Guardar
+                                </button>
+                            </div>
+                        </div>
+                    </form>
+                    <button type="button" class="btn btn-sm btn-outline-secondary" onclick="resetFranjaForm()">
+                        <i class="fas fa-undo me-1"></i> Limpiar Franja
+                    </button>
+
+                    <hr class="mt-4">
+
+                    <h6 class="mb-3 text-dark">Franjas Definidas</h6>
+                    <div class="table-responsive">
+                        <table class="table table-striped table-sm align-middle">
+                            <thead class="bg-light">
+                                <tr>
+                                    <th>Día</th>
+                                    <th>Entrada</th>
+                                    <th>Salida</th>
+                                    <th class="text-center">Acciones</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                {% if horario_seleccionado.franjas %}
+                                    {% for franja in horario_seleccionado.franjas | sort(attribute='dia_semana') %}
+                                    <tr>
+                                        <td>{{ dias[franja.dia_semana] }}</td>
+                                        <td><span class="badge bg-primary">{{ franja.hora_inicio.strftime('%H:%M') }}</span></td>
+                                        <td><span class="badge bg-danger">{{ franja.hora_fin.strftime('%H:%M') }}</span></td>
+                                        <td class="text-center">
+                                            {% set franja_data = {
+                                                'id': franja.id,
+                                                'dia_semana': franja.dia_semana,
+                                                'hora_inicio': franja.hora_inicio.strftime('%H:%M'),
+                                                'hora_fin': franja.hora_fin.strftime('%H:%M')
+                                            } %}
+
+                                            <button type="button"
+                                                    class="btn btn-sm btn-outline-info rounded-circle me-1"
+                                                    title="Modificar Franja"
+                                                    onclick='editarFranja({{ franja_data | tojson }})'>
+                                                <i class="fas fa-edit"></i>
+                                            </button>
+
+                                            <form method="POST" action="{{ url_for('main.franja_eliminar', franja_id=franja.id) }}" class="d-inline" onsubmit="return confirm('¿Eliminar esta franja horaria?');">
+                                                <button type="submit" class="btn btn-sm btn-outline-danger rounded-circle" title="Eliminar Franja">
+                                                    <i class="fas fa-trash"></i>
+                                                </button>
+                                            </form>
+                                        </td>
+                                    </tr>
+                                    {% endfor %}
+                                {% else %}
+                                    <tr>
+                                        <td colspan="4" class="text-center text-muted">Aún no hay franjas definidas para este horario.</td>
+                                    </tr>
+                                {% endif %}
+                            </tbody>
+                        </table>
+                    </div>
+                </div>
+            </div>
+            {% else %}
+            <div class="alert alert-info text-center shadow-lg border-0 mt-5">
+                <i class="fas fa-info-circle me-2"></i> Selecciona un horario de la izquierda para gestionar sus franjas.
+            </div>
+            {% endif %}
+        </div>
+    </div>
+</div>
+
+<script>
+    function editarHorario(horario) {
+    document.getElementById('horario_id').value = horario.id;
+    document.getElementById('nombre_horario').value = horario.nombre;
+
+    document.getElementById('horario-form-title').textContent =
+        'Modificación de Horario (ID: ' + horario.id + ')';
+
+    document.querySelector('#formHorario button[type="submit"]').innerHTML =
+        '<i class="fas fa-save me-2"></i> Guardar Cambios';
+    }
+
+
+    function resetHorarioForm() {
+    document.getElementById('horario_id').value = '';
+    document.getElementById('nombre_horario').value = '';
+
+    document.getElementById('horario-form-title').textContent = 'Alta de Nuevo Horario';
+    document.querySelector('#formHorario button[type="submit"]').innerHTML =
+        '<i class="fas fa-plus me-2"></i> Crear Horario';
+    }
+
+
+
+    function editarFranja(franja) {
+        document.getElementById('franja_id').setAttribute('value', franja.id);
+
+        document.getElementById('dia_semana').value = franja.dia_semana;
+
+        document.getElementById('hora_inicio').value = franja.hora_inicio;
+        document.getElementById('hora_fin').value = franja.hora_fin;
+
+        document.getElementById('btn-franja-submit').textContent = 'Guardar Cambios';
+    }
+
+    function resetFranjaForm() {
+        document.getElementById('franja_id').setAttribute('value', '');
+        document.getElementById('dia_semana').value = '';
+        document.getElementById('hora_inicio').value = '';
+        document.getElementById('hora_fin').value = '';
+
+        document.getElementById('btn-franja-submit').textContent = 'Guardar';
+    }
+</script>
+{% endblock %}
