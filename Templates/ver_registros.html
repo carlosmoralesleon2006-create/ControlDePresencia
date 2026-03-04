@@ -1,0 +1,53 @@
+{% extends "base.html" %}
+
+{% block title %}Registros de Presencia{% endblock %}
+
+{% block content %}
+<div class="container-fluid py-4">
+    <h1 class="mb-4 text-center text-primary">
+        <i class="fas fa-history me-2"></i> Control de Presencia
+    </h1>
+
+    <div class="card shadow-lg border-0">
+        <div class="card-header bg-primary text-white d-flex justify-content-between align-items-center">
+            <h5 class="mb-0">Registros de Empleados</h5>
+        </div>
+        <div class="card-body p-0">
+            <div class="table-responsive">
+                <table class="table table-hover mb-0">
+                    <thead class="table-light">
+                        <tr>
+                            <th>Empleado</th>
+                            <th>NIF</th>
+                            <th>Entrada</th>
+                            <th>Salida</th>
+                            <th>Estado</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        {% for registro in registros %}
+                        <tr>
+                            <td>{{ registro.trabajador.nombre }} {{ registro.trabajador.apellidos }}</td>
+                            <td>{{ registro.trabajador.nif }}</td>
+                            <td>{{ registro.hora_entrada.strftime('%d/%m/%Y %H:%M') if registro.hora_entrada }}</td>
+                            <td>{{ registro.hora_salida.strftime('%d/%m/%Y %H:%M') if registro.hora_salida else '---' }}</td>
+                            <td>
+                                {% if not registro.hora_salida %}
+                                    <span class="badge bg-success">En el puesto</span>
+                                {% else %}
+                                    <span class="badge bg-secondary">Finalizado</span>
+                                {% endif %}
+                            </td>
+                        </tr>
+                        {% else %}
+                        <tr>
+                            <td colspan="5" class="text-center p-4">No hay registros de presencia todavía.</td>
+                        </tr>
+                        {% endfor %}
+                    </tbody>
+                </table>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}

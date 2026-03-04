@@ -1,0 +1,45 @@
+{% extends "base.html" %}
+
+{% block title %}Gestión de Incidencias{% endblock %}
+
+{% block content %}
+<div class="container-fluid py-4">
+    <h1 class="mb-4 text-center text-warning">
+        <i class="fas fa-exclamation-triangle me-2"></i> Panel de Incidencias
+    </h1>
+
+    <div class="card shadow-lg border-0">
+        <div class="card-header bg-warning text-dark d-flex justify-content-between align-items-center">
+            <h5 class="mb-0">Avisos Reportados por Empleados</h5>
+        </div>
+        <div class="card-body p-0">
+            <div class="table-responsive">
+                <table class="table table-hover mb-0">
+                    <thead class="table-light">
+                        <tr>
+                            <th>Fecha y Hora</th>
+                            <th>Empleado</th>
+                            <th>Empresa</th>
+                            <th>Descripción</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        {% for incidencia in incidencias %}
+                        <tr>
+                            <td class="text-nowrap">{{ incidencia.fecha_hora.strftime('%d/%m/%Y %H:%M') }}</td>
+                            <td class="fw-bold">{{ incidencia.trabajador.nombre }} {{ incidencia.trabajador.apellidos }}</td>
+                            <td>{{ incidencia.trabajador.empresa_obj.nombre_comercial }}</td>
+                            <td>{{ incidencia.descripcion }}</td>
+                        </tr>
+                        {% else %}
+                        <tr>
+                            <td colspan="4" class="text-center p-4">No hay incidencias registradas.</td>
+                        </tr>
+                        {% endfor %}
+                    </tbody>
+                </table>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}

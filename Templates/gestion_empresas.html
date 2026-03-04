@@ -1,0 +1,245 @@
+{% extends "base.html" %}
+
+{% block title %}Gestión de Multi-Empresa{% endblock %}
+
+{% block content %}
+<link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css" />
+
+<div class="container-fluid py-4">
+    <h1 class="mb-4 text-center text-danger">
+        <i class="fas fa-sitemap me-2"></i> Gestión de Multi-Empresa
+    </h1>
+    <p class="text-center text-muted mb-5">
+        Panel de control para Superadministradores: gestión completa de todas las empresas del sistema.
+    </p>
+
+    <div class="row">
+        <div class="col-lg-4 mb-4">
+            <div class="card shadow-lg rounded-3">
+                <div class="card-header bg-danger text-white rounded-top-3">
+                    <h5 class="mb-0" id="empresa-form-title">Alta de Nueva Empresa</h5>
+                </div>
+                <div class="card-body">
+                    <form id="formEmpresa" method="POST" action="{{ url_for('main.empresa_nuevo') }}">
+                        <input type="hidden" name="empresa_id" id="empresa_id" value="">
+                        
+                        <div class="mb-3">
+                            <label for="nombre_comercial" class="form-label">Nombre Comercial (*)</label>
+                            <input type="text" class="form-control" id="nombre_comercial" name="nombre_comercial" required>
+                        </div>
+                        <div class="mb-3">
+                            <label for="cif" class="form-label">CIF (*)</label>
+                            <input type="text" class="form-control" id="cif" name="cif" required>
+                        </div>
+
+                        <h6 class="mt-4 mb-3 text-secondary">Geolocalización de Fichaje</h6>
+                        <div id="map" style="height: 250px; width: 100%; margin-bottom: 10px; border-radius: 10px; border: 1px solid #ddd;"></div>
+                        <p class="text-muted small mb-3">Haz clic en el mapa para situar la empresa.</p>
+
+                        <div class="row">
+                            <div class="col-md-6 mb-3">
+                                <label for="lat" class="form-label">Latitud</label>
+                                <input type="number" step="any" class="form-control bg-light" id="lat" name="lat" readonly>
+                            </div>
+                            <div class="col-md-6 mb-3">
+                                <label for="lng" class="form-label">Longitud</label>
+                                <input type="number" step="any" class="form-control bg-light" id="lng" name="lng" readonly>
+                            </div>
+                        </div>
+                        <div class="mb-3">
+                            <label for="radio" class="form-label">Radio permitido (metros)</label>
+                            <input type="number" class="form-control" id="radio" name="radio" value="50">
+                        </div>
+                        
+                        <div class="accordion accordion-flush" id="accordionInfo">
+                          <div class="accordion-item">
+                            <h2 class="accordion-header">
+                              <button class="accordion-button collapsed px-0 text-secondary" type="button" data-bs-toggle="collapse" data-bs-target="#extraInfo">
+                                Información de contacto y dirección
+                              </button>
+                            </h2>
+                            <div id="extraInfo" class="accordion-collapse collapse" data-bs-parent="#accordionInfo">
+                              <div class="accordion-body px-0">
+                                <div class="mb-3">
+                                    <label for="email" class="form-label">Email</label>
+                                    <input type="email" class="form-control" id="email" name="email">
+                                </div>
+                                <div class="mb-3">
+                                    <label for="telefono" class="form-label">Teléfono</label>
+                                    <input type="text" class="form-control" id="telefono" name="telefono">
+                                </div>
+                                <div class="mb-3">
+                                    <label for="domicilio" class="form-label">Domicilio</label>
+                                    <input type="text" class="form-control" id="domicilio" name="domicilio">
+                                </div>
+                                <div class="mb-3">
+                                    <label for="localidad" class="form-label">Localidad</label>
+                                    <input type="text" class="form-control" id="localidad" name="localidad">
+                                </div>
+                                <div class="row">
+                                    <div class="col-6">
+                                        <label for="codigo_postal" class="form-label">C.P.</label>
+                                        <input type="text" class="form-control" id="codigo_postal" name="codigo_postal">
+                                    </div>
+                                    <div class="col-6">
+                                        <label for="provincia" class="form-label">Provincia</label>
+                                        <input type="text" class="form-control" id="provincia" name="provincia">
+                                    </div>
+                                </div>
+                              </div>
+                            </div>
+                          </div>
+                        </div>
+                        
+                        <div class="d-grid gap-2 mt-4">
+                            <button type="submit" class="btn btn-danger">
+                                <i class="fas fa-plus me-2"></i> Crear Empresa
+                            </button>
+                            <button type="button" class="btn btn-outline-secondary" onclick="resetEmpresaForm()">
+                                <i class="fas fa-undo me-1"></i> Limpiar
+                            </button>
+                        </div>
+                    </form>
+                </div>
+            </div>
+        </div>
+
+        <div class="col-lg-8">
+            <div class="card shadow-lg rounded-3">
+                <div class="card-header bg-dark text-white rounded-top-3">
+                    <h5 class="mb-0">Listado de Empresas ({{ empresas | length }})</h5>
+                </div>
+                <div class="card-body p-0">
+                    {% if empresas %}
+                    <div class="table-responsive">
+                        <table class="table table-striped table-hover mb-0">
+                            <thead class="bg-light">
+                                <tr>
+                                    <th scope="col">Nombre Comercial</th>
+                                    <th scope="col">CIF</th>
+                                    <th scope="col">Ubicación</th>
+                                    <th scope="col">Empleados</th>
+                                    <th scope="col" class="text-center">Acciones</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                {% for empresa in empresas %}
+                                <tr>
+                                    <td>{{ empresa.nombre_comercial }}</td>
+                                    <td>{{ empresa.cif }}</td>
+                                    <td class="small">
+                                        {% if empresa.lat %}
+                                            {{ empresa.lat|round(4) }}, {{ empresa.lng|round(4) }} ({{ empresa.radio }}m)
+                                        {% else %}
+                                            <span class="text-muted">No configurada</span>
+                                        {% endif %}
+                                    </td>
+                                    <td><span class="badge bg-info text-dark">{{ empresa.empleados | length }}</span></td>
+                                    <td class="text-center">
+                                        {% set empresa_data = {
+                                            'id': empresa.id,
+                                            'nombre_comercial': empresa.nombre_comercial,
+                                            'cif': empresa.cif,
+                                            'domicilio': empresa.domicilio or '',
+                                            'localidad': empresa.localidad or '',
+                                            'codigo_postal': empresa.codigo_postal or '',
+                                            'provincia': empresa.provincia or '',
+                                            'email': empresa.email or '',
+                                            'telefono': empresa.telefono or '',
+                                            'lat': empresa.lat or 40.4167,
+                                            'lng': empresa.lng or -3.7037,
+                                            'radio': empresa.radio or 50
+                                        } %}
+
+                                        <button type="button" class="btn btn-sm btn-info rounded-circle me-2" onclick='editarEmpresa({{ empresa_data | tojson }})'>
+                                            <i class="fas fa-edit"></i>
+                                        </button>
+
+                                        <form method="POST" action="{{ url_for('main.empresa_eliminar', empresa_id=empresa.id) }}" class="d-inline" onsubmit="return confirm('¿Eliminar {{ empresa.nombre_comercial }}?');">
+                                            <button type="submit" class="btn btn-sm btn-danger rounded-circle" {% if empresa.empleados | length > 0 %} disabled {% endif %}>
+                                                <i class="fas fa-trash"></i>
+                                            </button>
+                                        </form>
+                                    </td>
+                                </tr>
+                                {% endfor %}
+                            </tbody>
+                        </table>
+                    </div>
+                    {% else %}
+                    <p class="p-4 text-center text-info">No hay empresas registradas.</p>
+                    {% endif %}
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
+<script>
+    // Inicialización del Mapa
+    let map = L.map('map').setView([40.4167, -3.7037], 13);
+    L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
+        attribution: '&copy; OpenStreetMap'
+    }).addTo(map);
+
+    let marker = L.marker([40.4167, -3.7037], {draggable: true}).addTo(map);
+    let circle = L.circle([40.4167, -3.7037], {radius: 50, color: 'red'}).addTo(map);
+
+    function updateMapElements(lat, lng, radius) {
+        let coords = [lat, lng];
+        marker.setLatLng(coords);
+        circle.setLatLng(coords);
+        circle.setRadius(radius);
+        map.setView(coords);
+        document.getElementById('lat').value = lat.toFixed(6);
+        document.getElementById('lng').value = lng.toFixed(6);
+    }
+
+    map.on('click', function(e) {
+        updateMapElements(e.latlng.lat, e.latlng.lng, parseFloat(document.getElementById('radio').value) || 50);
+    });
+
+    marker.on('dragend', function(e) {
+        let pos = marker.getLatLng();
+        updateMapElements(pos.lat, pos.lng, parseFloat(document.getElementById('radio').value) || 50);
+    });
+
+    document.getElementById('radio').addEventListener('input', function(e) {
+        circle.setRadius(parseFloat(e.target.value) || 0);
+    });
+
+    function editarEmpresa(empresa) {
+        document.getElementById('formEmpresa').action = '{{ url_for('main.empresa_modificar', empresa_id=1) }}'.replace('1', empresa.id);
+        document.getElementById('empresa_id').value = empresa.id;
+        document.getElementById('nombre_comercial').value = empresa.nombre_comercial;
+        document.getElementById('cif').value = empresa.cif;
+        document.getElementById('email').value = empresa.email;
+        document.getElementById('telefono').value = empresa.telefono;
+        document.getElementById('domicilio').value = empresa.domicilio;
+        document.getElementById('localidad').value = empresa.localidad;
+        document.getElementById('codigo_postal').value = empresa.codigo_postal;
+        document.getElementById('provincia').value = empresa.provincia;
+        document.getElementById('radio').value = empresa.radio;
+
+        updateMapElements(empresa.lat, empresa.lng, empresa.radio);
+
+        document.getElementById('empresa-form-title').textContent = 'Modificando Empresa: ' + empresa.nombre_comercial;
+        let btn = document.querySelector('#formEmpresa button[type="submit"]');
+        btn.textContent = 'Guardar Cambios';
+        btn.classList.replace('btn-danger', 'btn-success');
+    }
+
+    function resetEmpresaForm() {
+        document.getElementById('formEmpresa').action = '{{ url_for('main.empresa_nuevo') }}';
+        document.getElementById('formEmpresa').reset();
+        document.getElementById('empresa_id').value = '';
+        updateMapElements(40.4167, -3.7037, 50);
+        
+        document.getElementById('empresa-form-title').textContent = 'Alta de Nueva Empresa';
+        let btn = document.querySelector('#formEmpresa button[type="submit"]');
+        btn.textContent = 'Crear Empresa';
+        btn.classList.replace('btn-success', 'btn-danger');
+    }
+</script>
+{% endblock %}
